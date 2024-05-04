@@ -1,6 +1,5 @@
 import os, glob, win32api, win32con
 import tkinter as tk
-from moviepy.editor import *
 from mutagen.mp3 import MP3  
 from mutagen.easyid3 import EasyID3
 from threading import *
@@ -65,7 +64,6 @@ from threading import *
 #   6: WIN32CON:    https://timgolden.me.uk/pywin32-docs/win32console.html
 #   7: Threading:   https://docs.python.org/3/library/threading.html
 #   8: Tkinter:     https://docs.python.org/3/library/tk.html
-#   9: Moviepy:     https://zulko.github.io/moviepy/
 #
 #------------------------------------------------------CODE STARTS HERE-------------------------------------------------------------------------------------------
 
@@ -154,7 +152,6 @@ def structure_album(search_path):
     thumbnails = glob.glob(search_path + "\*.jpg")
     thumbnail_path = ""
     for i in range(len(thumbnails)):
-        #thumbnail_path = thumbnails[i][:len(thumbnails[i])-41] + ".jpg"         # try current_thumbnail = thumbnails[i].split(" ") and thumbnailpath =  current_thumbnail[:len(current_thumbnail)-1].join(" ") + ".jpg"
         current_thumbnail = thumbnails[i].split(" ")
         thumbnail_path =  " ".join(current_thumbnail[:len(current_thumbnail)-1]) + ".jpg"
         split_thumbnail_path = thumbnail_path.split("\\")
@@ -168,7 +165,21 @@ def structure_album(search_path):
     
     print("\n\n\n\nChanging the Album Artist")
     set_album_artist(album_path, get_album_artist(album_path))
-    
+
+''' '''
+def set_default_download_path(save_dir):
+    save_dir_file_path = save_dir + "\default save dir.txt"
+    if os.path.exists(save_dir):                    # Runs if the save_dir exists
+        if os.path.exists(save_dir_file_path):      # Runs if the save_dir esists and the text file exists
+            save_file = open(save_dir_file_path)
+            save_file.close()
+        else:                                       # Runs if the save_dir exists, but the text file does not. This means it is the first run
+            save_file = open(save_dir_file_path)
+            save_file.close()
+    else:                                           # Runs if the save_dir does not exist. Rhis shouldn't happen unless through user error
+        save_dir_file_path = save_dir + "\default save dir.txt"
+        save_file.close()
+
 ''' Handles the Inputs and Runs the selected program
     This function does not have any Parameters or Returns, but accesses the text from the directory and input_url text boxes
     @Params:    none
