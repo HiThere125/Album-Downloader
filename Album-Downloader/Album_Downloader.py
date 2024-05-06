@@ -52,8 +52,6 @@ from threading import *
 #
 #   Future Plans:
 #   1:  Add an alias function that keeps a memory, in an external file, of artist names and what the user wants them to be called
-#   2:  Implement a default download location. If the save_dir is left blank then it will download the album there. This will also likely be saved externally
-#   3:  Implement safety mechanisms for various use-cases that are unaccounted for
 #
 #   Documentation
 #   1: YT-DLP:      https://github.com/yt-dlp/yt-dlp
