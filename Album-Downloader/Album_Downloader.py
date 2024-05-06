@@ -182,15 +182,23 @@ def structure_album(search_path):
     print("\n\nChanging the Album Artist")
     set_album_artist(album_path, get_album_artist(album_path))
 
-''' Sets the default download path in a text file in the same path as the python file
-    There's no need to check if the save_dir exists in this function because it is checked at the beginning 
-    @Params:    save_dir    |   String  |   Path to save the Album at and the directory to save as default
-    @Returns:   none'''
-def set_default_download_path(save_dir):
+''' Gets the Path to the Default Directory file regardless of whether it exists or not
+    There is a check whether the file exists outside this function scope
+    @Params: None
+    @Returns: None'''
+def get_default_directory():
     current_file_path = os.path.realpath(__file__)
     split_dir = current_file_path.split("\\")
     folder_path = "\\".join(split_dir[:len(split_dir)-1])
     save_dir_file_path = folder_path + "\default save dir.txt"
+    return save_dir_file_path
+
+''' Sets the default download path in a text file in the same path as the python file
+    There is a check whether save_dir exists outside this function scope
+    @Params:    save_dir    |   String  |   Path to save the Album at and the directory to save as default
+    @Returns:   none'''
+def set_default_download_path(save_dir):
+    save_dir_file_path = get_default_directory()
     if os.path.exists(save_dir_file_path):                  # Runs if the text file exists
         print(f"Default Directory File detected. Opening: {save_dir_file_path}")
         print(f"Overwriting Default Directory. New Default: {save_dir}\n\n")
@@ -209,25 +217,33 @@ def set_default_download_path(save_dir):
     @Params:    none
     @Returns:   none'''
 def run_handler():
-    save_dir = directory_path.get("1.0", "end-1c")
-    playlist_link = youtube_url.get("1.0", "end-1c")
-    set_default = check_button_1.get()
-    if save_dir != "" and playlist_link != "":
-        if "https://www.youtube.com/playlist?list=" in playlist_link and os.path.exists(save_dir):
-            if set_default == 1:
-                label_message.config(text=f"Downloading Album. Setting Default Directory: {save_dir}")
-                set_default_download_path(save_dir)
-            else:
-                label_message.config(text="Downloading Album")
-            thread1 = Thread(target=downloadAlbum, args=(save_dir, playlist_link))
-            thread1.start()
+    save_dir = directory_path.get("1.0", "end-1c").strip()
+    playlist_link = youtube_url.get("1.0", "end-1c").strip()
+
+    run_program = True
+    if playlist_link == "" or not playlist_link.startswith("https://www.youtube.com/playlist?list="):
+        label_message.config(text="Error: Invalid Playlist URL")
+        run_program = False
+    if save_dir == "":
+        if os.path.exists(get_default_directory()):
+            default_dir_file = open(get_default_directory(), 'r')
+            save_dir = default_dir_file.read()
+            print(f"Using default Directory. Saving files to: {save_dir}\n\n")
         else:
-            label_message.config(text="Error: Invalid Input Detected. Please ensure playlist link is valid and directory exists")
-    else:
-        if save_dir == "":
-            label_message.config(text="Error: Input not detected: Directory")
+            label_message.config(text="Error: Directory not provided, default not found. Please insert a Directory")
+            run_program = False
+    if not os.path.exists(save_dir):
+        label_message.config(text="Error: Invalid Directory")
+        run_program = False
+
+    if run_program:
+        if check_button_1.get() == 1:
+            label_message.config(text=f"Downloading Album. Setting Default Directory: {save_dir}")
+            set_default_download_path(save_dir)
         else:
-            label_message.config(text="Error: Input not detected: Input URL")
+            label_message.config(text="Downloading Album")
+        thread1 = Thread(target=downloadAlbum, args=(save_dir, playlist_link))
+        thread1.start()
 
 ''' Inserts a directory example into the directory text box
     This function does not have any Parameters or Returns, but modifies the text from the directory text box
