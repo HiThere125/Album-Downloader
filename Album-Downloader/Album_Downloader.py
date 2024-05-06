@@ -71,14 +71,26 @@ from threading import *
     @Params:    path        |   String  |   Path to save the Playlist at
                 playlistLink|   String  |   URL to the Playlist to download
     @Returns:   none'''
-def downloadAlbum(path, playlistLink):
-    os.chdir(f"{path}")
+def downloadAlbum(save_dir, playlistLink):
+    os.chdir(f"{save_dir}")
     yt_dlp_command = f'yt-dlp {playlistLink} -f ba -x --audio-format mp3 -o "%(channel)s-+-%(playlist)s-+-%(title)s.%(ext)s" --parse-metadata "playlist_index:%(track_number)s" --embed-metadata'
     os.system(yt_dlp_command)
     thumbnail_command = f'yt-dlp {playlistLink} --skip-download --write-thumbnail -o "thumbnail:"'
     os.system(thumbnail_command)
-    structure_album(path)
-    print("\n\n\n\nFinished")
+    structure_album(save_dir)
+    print(f"\n\nFinished Downloading and formatting Album to {save_dir}")
+    if check_button_2.get() == 1:
+        print("\n\nClearing Directory Input")
+        directory_path.delete("1.0", "end-1c")
+        directory_path.update()
+        check_button_2.set(0)
+    if check_button_3.get() == 1:
+        print("\n\nClearing Playlist Input")
+        youtube_url.delete("1.0", "end-1c")
+        youtube_url.update()
+        check_button_3.set(0)
+    if check_button_1.get() == 1:
+        check_button_1.set(0)
 
 ''' Gets the name of the Album Artist by counting the instances of every unique album artist and sorting them in decreasing order so the most common one is first
     @Params:    album_path      |   String  |   Path to find the Ablum at
@@ -124,7 +136,7 @@ def add_tags_to_album(current_file, channel, album):
     @Params:    search_path |   String  |   Path to find the album files at
     @Returns:   none'''
 def structure_album(search_path):
-    print("\n\n\n\nMoving the songs to the correct folder")
+    print("\n\nFormatting files into Album")
     album_path = ""
     file_list = glob.glob(search_path + "\*.mp3")
     for i in range(len(file_list)):
@@ -136,19 +148,23 @@ def structure_album(search_path):
         album = split_file_name[1].strip()
         current_file_title = split_file_name[2]
 
+        print("\n\nSwitching to Adding Tags")
+        print(f"Adding tags to file {i+1}/{len(file_list)}: {current_file_path}")
         add_tags_to_album(current_file_path, channel, album)
 
+        print("\n\nSwitching to moving files")
         album_path = f"{search_path}\{album}"
         new_file_path = f"{search_path}\{album}\{current_file_title}"
         if os.path.exists(album_path):
             print(f"Moving file {i+1}/{len(file_list)}: {current_file_path} --> {new_file_path}")
             os.rename(current_file_path, new_file_path)
         else:
+            print(f"Creating {album_path} folder")
             os.makedirs(album_path)
             print(f"Moving file {i+1}/{len(file_list)}: {current_file_path} --> {new_file_path}")
             os.rename(current_file_path, new_file_path)
 
-    print("\n\n\n\nMoving the thumbnail to the correct folder")
+    print("\n\nMoving the thumbnail to the correct folder")
     thumbnails = glob.glob(search_path + "\*.jpg")
     thumbnail_path = ""
     for i in range(len(thumbnails)):
@@ -160,24 +176,32 @@ def structure_album(search_path):
         print(f"Moving file: {thumbnails[i]} --> {thumbnail_path}")
         os.rename(thumbnails[i], thumbnail_path)
         
-    print("\n\n\n\nSetting the Album File to Read-Only")
+    print("\n\nSetting the Album File to Read-Only")
     win32api.SetFileAttributes(album_path, win32con.FILE_ATTRIBUTE_READONLY)
     
-    print("\n\n\n\nChanging the Album Artist")
+    print("\n\nChanging the Album Artist")
     set_album_artist(album_path, get_album_artist(album_path))
 
-''' '''
+''' Sets the default download path in a text file in the same path as the python file
+    There's no need to check if the save_dir exists in this function because it is checked at the beginning 
+    @Params:    save_dir    |   String  |   Path to save the Album at and the directory to save as default
+    @Returns:   none'''
 def set_default_download_path(save_dir):
-    save_dir_file_path = save_dir + "\default save dir.txt"
-    if os.path.exists(save_dir):                    # Runs if the save_dir exists
-        if os.path.exists(save_dir_file_path):      # Runs if the save_dir esists and the text file exists
-            save_file = open(save_dir_file_path)
-            save_file.close()
-        else:                                       # Runs if the save_dir exists, but the text file does not. This means it is the first run
-            save_file = open(save_dir_file_path)
-            save_file.close()
-    else:                                           # Runs if the save_dir does not exist. Rhis shouldn't happen unless through user error
-        save_dir_file_path = save_dir + "\default save dir.txt"
+    current_file_path = os.path.realpath(__file__)
+    split_dir = current_file_path.split("\\")
+    folder_path = "\\".join(split_dir[:len(split_dir)-1])
+    save_dir_file_path = folder_path + "\default save dir.txt"
+    if os.path.exists(save_dir_file_path):                  # Runs if the text file exists
+        print(f"Default Directory File detected. Opening: {save_dir_file_path}")
+        print(f"Overwriting Default Directory. New Default: {save_dir}\n\n")
+        save_file = open(save_dir_file_path, 'w').close()   # Clears the current text in the file
+        save_file = open(save_dir_file_path, 'w')
+        save_file.write(save_dir)
+        save_file.close()
+    else:                                                   # Runs if the text file does not exist
+        print(f"Creating Default Directory Text File: {save_dir_file_path}\n\n")
+        save_file = open(save_dir_file_path, 'w')
+        save_file.write(save_dir)
         save_file.close()
 
 ''' Handles the Inputs and Runs the selected program
@@ -185,79 +209,124 @@ def set_default_download_path(save_dir):
     @Params:    none
     @Returns:   none'''
 def run_handler():
-    save_dir = directory.get("1.0", "end-1c")
-    youtube_url = input_url.get("1.0", "end-1c")
-    if save_dir != "" and youtube_url != "":
-        l4.config(text="Downloading Album")
-        thread1 = Thread(target=downloadAlbum, args=(save_dir, youtube_url))
-        thread1.start()
+    save_dir = directory_path.get("1.0", "end-1c")
+    playlist_link = youtube_url.get("1.0", "end-1c")
+    set_default = check_button_1.get()
+    if save_dir != "" and playlist_link != "":
+        if "https://www.youtube.com/playlist?list=" in playlist_link and os.path.exists(save_dir):
+            if set_default == 1:
+                label_message.config(text=f"Downloading Album. Setting Default Directory: {save_dir}")
+                set_default_download_path(save_dir)
+            else:
+                label_message.config(text="Downloading Album")
+            thread1 = Thread(target=downloadAlbum, args=(save_dir, playlist_link))
+            thread1.start()
+        else:
+            label_message.config(text="Error: Invalid Input Detected. Please ensure playlist link is valid and directory exists")
     else:
         if save_dir == "":
-            l4.config(text="Error: Input not detected: Directory")
+            label_message.config(text="Error: Input not detected: Directory")
         else:
-            l4.config(text="Error: Input not detected: Input URL")
+            label_message.config(text="Error: Input not detected: Input URL")
 
 ''' Inserts a directory example into the directory text box
     This function does not have any Parameters or Returns, but modifies the text from the directory text box
     @Params:    none
     @Returns:   none'''
 def show_example_directory():
-    directory.delete("1.0", "end-1c")
-    directory.insert("1.0", "C:\\Users\\User\\Save File")
-    directory.update()
+    directory_path.delete("1.0", "end-1c")
+    directory_path.insert("1.0", "C:\\Users\\User\\Save File")
+    directory_path.update()
 
 ''' Inserts a playlist url example into the input_url text box
     This function does not have any Parameters or Returns, but modifies the text from the input_url text box
     @Params:    none
     @Returns:   none'''
 def show_example_playlist_url():
-    input_url.delete("1.0", "end-1c")
-    input_url.insert("1.0","https://www.youtube.com/playlist?list=PLAYLIST")
-    input_url.update()
+    youtube_url.delete("1.0", "end-1c")
+    youtube_url.insert("1.0","https://www.youtube.com/playlist?list=PLAYLIST")
+    youtube_url.update()
+
+''' Clears all text from the directory text box
+    This function does not have any Parameters or Returns, but modifies the text from the directory text box
+    @Params:    none
+    @Returns:   none'''
+def clear_directory():
+    directory_path.delete("1.0", "end-1c")
+    directory_path.update()
+
+''' Clears all text from the input_url text box
+    This function does not have any Parameters or Returns, but modifies the text from the input_url text box
+    @Params:    none
+    @Returns:   none'''
+def clear_youtube():
+    youtube_url.delete("1.0", "end-1c")
+    youtube_url.update()
 
 ''' Clears all text from the directory and input_url text boxes
     This function does not have any Parameters or Returns, but modifies the text from the directory and input_url text boxes
     @Params:    none
     @Returns:   none'''
 def clear_input():
-    directory.delete("1.0", "end-1c")
-    input_url.delete("1.0", "end-1c")
-    directory.update()
-    input_url.update()
+    directory_path.delete("1.0", "end-1c")
+    youtube_url.delete("1.0", "end-1c")
+    directory_path.update()
+    youtube_url.update()
+    check_button_1.set(0)
+    check_button_2.set(0)
+    check_button_3.set(0)
 
 root = tk.Tk()
-root.geometry("750x275")
+root.geometry("800x350")
 
 # Creates Labels for user convenience
-l1 = tk.Label(text = "Directory")
-l2 = tk.Label(text = "YouTube URL")
-l3 = tk.Label(text = "Output")
-l4 = tk.Label(text = "")
+label_directory = tk.Label(text = "Directory")
+label_youtube = tk.Label(text = "YouTube URL")
+label_options = tk.Label(text = "Options")
+label_output = tk.Label(text = "Output")
+label_message = tk.Label(text = "")
 
 # Creates Text boxes for user input
-input_url = tk.Text(root, height = 1, width = 50, bg = "light cyan")
-directory = tk.Text(root, height = 1, width = 50, bg = "light green")
+youtube_url = tk.Text(root, height = 1, width = 50, bg = "light cyan")
+directory_path = tk.Text(root, height = 1, width = 50, bg = "light green")
 
 # Creates Buttons
-button1 = tk.Button(root ,text = "Convert", command = lambda: run_handler())
-button2 = tk.Button(root, text = 'Directory Example', command = lambda: show_example_directory())
-button3 = tk.Button(root, text = 'Playlist Example', command = lambda: show_example_playlist_url())
-button4 = tk.Button(root, text = 'Clear Input', command = lambda: clear_input())
+button_directory = tk.Button(root, text = 'Directory Example', command = lambda: show_example_directory())
+button_youtube = tk.Button(root, text = 'Playlist Example', command = lambda: show_example_playlist_url())
+button_clear_directory = tk.Button(root, text = 'Clear Directory', command = lambda: clear_directory())
+button_clear_youtube = tk.Button(root, text = 'Clear YouTube URL', command = lambda: clear_youtube())
+button_clear_all = tk.Button(root, text = 'Clear All Input', command = lambda: clear_input())
+button_run = tk.Button(root ,text = "Convert", command = lambda: run_handler())
+
+# Creates Checkbutton
+check_button_1 = tk.IntVar()
+check_button_2 = tk.IntVar()
+check_button_3 = tk.IntVar()
+check_set_default = tk.Checkbutton(root, text = "Set as Default Directory", variable = check_button_1, onvalue = 1, offvalue = 0, height = 1, width = 20)
+check_clear_directory = tk.Checkbutton(root, text = "Clear Directory after completion", variable = check_button_2, onvalue = 1, offvalue = 0, height = 1, width = 30)
+check_clear_youtube = tk.Checkbutton(root, text = "Clear YouTube url after completion", variable = check_button_3, onvalue = 1, offvalue = 0, height = 1, width = 30) 
 
 # Places all of the window features here
-l1.place(x=20, y=50)
-directory.place(x=100, y=50)
-button2.place(x=525, y=50)
+label_directory.place(x=20, y=50)
+directory_path.place(x=100, y=50)
+button_directory.place(x=525, y=50)
+button_clear_directory.place(x=650, y=50)
 
-l2.place(x=20, y=100)
-input_url.place(x=100, y=100)
-button3.place(x=525, y=100)
+label_youtube.place(x=20, y=100)
+youtube_url.place(x=100, y=100)
+button_youtube.place(x=525, y=100)
+button_clear_youtube.place(x=650, y=100)
 
-button1.place(x=300, y=150)
-button4.place(x=400, y=150)
+label_options.place(x=20, y=150)
+check_set_default.place(x=85, y=150)
+check_clear_directory.place(x=74, y=175)
+check_clear_youtube.place(x=82, y=200)
 
-l3.place(x=20,y=200)
-l4.place(x=100, y=200)
+button_run.place(x=300, y=250)
+button_clear_all.place(x=400, y=250)
+
+label_output.place(x=20,y=300)
+label_message.place(x=100, y=300)
 
 # Run the window
 root.mainloop()
