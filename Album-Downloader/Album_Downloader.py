@@ -5,39 +5,42 @@ from mutagen.easyid3 import EasyID3
 from threading import *
 
 #
-#------------------------------------------------------DISCLAIMER--------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------DISCLAIMER-------------------------------------------------------------------------------
 #
-#   1:  This project is purely for eductation and trial purposes
-#   2:  Support the Artist wherever and whenever you can via YouTube, Spotify, Bandcamp, or wherever the artist officially hosts or sells their music
+#   1:  This project is purely for eductation and trial purposes.
+#   2:  Support the Artist wherever and whenever you can via YouTube, Spotify, Bandcamp, or wherever the artist officially hosts or sells their music.
 #       Examples:
 #       -   If you have wifi or unlimited data it is recommended to use those connections to stream the album to support the artist whenever possible, or
 #       -   If you like the album and have the disposable income please purchase the music from an official source to listen to it offline
-#   3:  If you care about hi-fi versions of the album, THIS IS NOT IT. Please buy the album or listen to it on a different platform
-#   4:  This does NOT completely format the album and some manual work NEEDS to be done. This project just eliminates a large portion of the work
+#   3:  If you care about hi-fi versions of the album, THIS IS NOT IT. Please buy the album or listen to it on a different platform.
+#   4:  This does NOT completely format the album and some manual work NEEDS to be done. This project just eliminates a large portion of the work.
 #
-#   5:  This project uses OS and GLOB libraries. Please read at the code before running it to AVOID running POTENTIALLY MALICIOUS code on your computer
-#       -   Never trust an unknown programmer. ALWAYS look over their code before running it, even if a description/summary is provided
-#       -   If you still cannot trust the code, make it yourself
+#   5:  This project uses OS and GLOB libraries. Please read at the code before running it to AVOID running POTENTIALLY MALICIOUS code on your computer.
+#       -   Never trust an unknown programmer. ALWAYS look over their code before running it, even if a description/summary is provided.
+#       -   If you still cannot trust the code, make it yourself.
+#
+#   6:  This program does not endorse piracy in any way. The authors of the program and the authors of any libraries used in this program are not liable for
+#       any actions taken by any users of the program.
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
-#   The purpose of this program is to be able to download a playlist from YouTube and format it into an album folder
-#   1:  Tkinter is used to handle the user input for the save_dir and the YouTube link
-#   2:  OS is used to move to the save_dir
-#   3:  OS is used to run the YT-DLP command to download the playlist as .mp3 files
-#   4:  OS is used to run the YT-DLP command to download the playlist thumbnail as .jpg
-#   4:  Mutagen is used to add the remaining metadata to the songs
-#   5:  OS is used to move all of the files from the playlist into a folder
-#   6:  Win32api and Win32con are used to format the folder as read-only
+#   The purpose of this program is to be able to download a playlist from YouTube and format it into an album folder.
+#   1:  Tkinter is used to handle the user input for the save_dir and the YouTube link.
+#   2:  OS is used to move to the save_dir.
+#   3:  OS is used to run the YT-DLP command to download the playlist as .mp3 files.
+#   4:  OS is used to run the YT-DLP command to download the playlist thumbnail as .jpg.
+#   4:  Mutagen is used to add the remaining metadata to the songs.
+#   5:  OS is used to move all of the files from the playlist into a folder.
+#   6:  Win32api and Win32con are used to format the folder as read-only.
 #
 #   Notes:
-#   1:  Threading is used to ensure the tkinter window is still responsive while processing the video
-#       -   Despite this it is recommended to only download one album at a time to reduce CPU and YouTube server load
-#       -   Reducing YouTube server load lessens the likelyhood of being banned or blocked
-#   2:  Python does not have the ability to set the folder picture so that has to be done manually afterwards (this can be done in a few seconds)
+#   1:  Threading is used to ensure the tkinter window is still responsive while processing the video.
+#       -   Despite this it is recommended to only download one album at a time to reduce CPU and YouTube server load.
+#       -   Reducing YouTube server load lessens the likelyhood of being banned or blocked.
+#   2:  Python does not have the ability to set the folder picture so that has to be done manually afterwards (this can be done in a few seconds).
 #       1:  Right-click the album folder
 #       2:  Click properties
 #       3:  Click customize
@@ -48,18 +51,18 @@ from threading import *
 #       8:  Click open
 #       9:  Click apply
 #       10: Exit window
-#   3:  This project is still a work in progress and may update depending on future changes to YT-DLP
+#   3:  This project is still a work in progress and may update depending on future changes to YT-DLP.
 #
 #   Future Plans:
-#   1:  Add an alias function that keeps a memory, in an external file, of artist names and what the user wants them to be called
+#   1:  Add an alias function that keeps a memory, in an external file, of artist names and what the user wants them to be called.
 #
 #   Documentation
 #   1: YT-DLP:      https://github.com/yt-dlp/yt-dlp
 #   2: Mutagen:     https://mutagen.readthedocs.io/en/latest/index.html
 #   3: OS:          https://docs.python.org/3/library/os.html
 #   4: GLOB:        https://docs.python.org/3/library/glob.html
-#   5: WIN32API:    https://timgolden.me.uk/pywin32-docs/win32api.html
-#   6: WIN32CON:    https://timgolden.me.uk/pywin32-docs/win32console.html
+#   5: PYWIN32:     https://timgolden.me.uk/pywin32-docs/win32api.html      win32api
+#   6: PYWIN32:     https://timgolden.me.uk/pywin32-docs/win32console.html  win32con
 #   7: Threading:   https://docs.python.org/3/library/threading.html
 #   8: Tkinter:     https://docs.python.org/3/library/tk.html
 #
@@ -291,6 +294,7 @@ def clear_input():
     check_button_3.set(0)
 
 root = tk.Tk()
+root.title("Album Downloader")
 root.geometry("800x350")
 
 # Creates Labels for user convenience
@@ -310,7 +314,7 @@ button_youtube = tk.Button(root, text = 'Playlist Example', command = lambda: sh
 button_clear_directory = tk.Button(root, text = 'Clear Directory', command = lambda: clear_directory())
 button_clear_youtube = tk.Button(root, text = 'Clear YouTube URL', command = lambda: clear_youtube())
 button_clear_all = tk.Button(root, text = 'Clear All Input', command = lambda: clear_input())
-button_run = tk.Button(root ,text = "Convert", command = lambda: run_handler())
+button_run = tk.Button(root ,text = "Download Album", command = lambda: run_handler())
 
 # Creates Checkbutton
 check_button_1 = tk.IntVar()
@@ -336,7 +340,7 @@ check_set_default.place(x=85, y=150)
 check_clear_directory.place(x=74, y=175)
 check_clear_youtube.place(x=82, y=200)
 
-button_run.place(x=300, y=250)
+button_run.place(x=275, y=250)
 button_clear_all.place(x=400, y=250)
 
 label_output.place(x=20,y=300)
