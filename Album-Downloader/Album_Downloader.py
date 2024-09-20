@@ -68,11 +68,12 @@ from threading import *
 #
 #------------------------------------------------------CODE STARTS HERE-------------------------------------------------------------------------------------------
 
-''' Downloads a Youtube Album from the playlistLink and indexes them by the order they appear in the playlist
-    @Params:    path        |   String  |   Path to save the Playlist at
-                playlistLink|   String  |   URL to the Playlist to download
-    @Returns:   none'''
-def downloadAlbum(save_dir, playlistLink):
+''' 
+    Downloads a Youtube Album from the playlistLink and indexes them by the order they appear in the playlist
+    @param      path            |   Path to save the Playlist at
+    @param      playlistLinK    |   URL to the Playlist to download
+'''
+def downloadAlbum(save_dir: str, playlistLink: str) -> None:
     os.chdir(f"{save_dir}")
     yt_dlp_command = f'yt-dlp {playlistLink} -f ba -x --audio-format mp3 -o "%(channel)s-+-%(playlist)s-+-%(title)s.%(ext)s" --parse-metadata "playlist_index:%(track_number)s" --embed-metadata'
     os.system(yt_dlp_command)
@@ -94,9 +95,10 @@ def downloadAlbum(save_dir, playlistLink):
         check_button_1.set(0)
 
 ''' Gets the name of the Album Artist by counting the instances of every unique album artist and sorting them in decreasing order so the most common one is first
-    @Params:    album_path      |   String  |   Path to find the Ablum at
-    @Returns:   album_artist[0] |   String  |   Name of the Album Artist'''
-def get_album_artist(album_path):
+    @param      album_path      |   Path to find the Ablum at
+    @return     album_artist[0] |   Name of the Album Artist
+'''
+def get_album_artist(album_path: str) -> str:
     file_list = glob.glob(album_path + "\*.mp3")
     artist_count = {}
     for file in file_list:
@@ -112,10 +114,10 @@ def get_album_artist(album_path):
     return album_artist[0]
 
 ''' Sets the Album Artist metadata tag for all of the songs based on the output of get_album_artist()
-    @Params:    album_path  |   String  |   Path to find the Album at
-                album_artist|   String  |   Name of the Album Artist
-    @Returns:   none'''
-def set_album_artist(album_path, album_artist):
+    @param      album_path      |   Path to find the Album at
+    @param      album_artist    |   Name of the Album Artist
+'''
+def set_album_artist(album_path: str, album_artist: str) -> None:
     file_list = glob.glob(album_path + "\*.mp3")
     for file in file_list:
         song = MP3(file, ID3=EasyID3)
@@ -123,20 +125,20 @@ def set_album_artist(album_path, album_artist):
         song.save()
 
 ''' Adds meta data to the songs in the album according to their folder and name using Mutagen
-    @Params:    current_file    |   String  |   Path to save the metadata to
-                channel         |   String  |   Channel/Artist name
-                album           |   String  |   Album name
-    @Returns:   none'''
-def add_tags_to_album(current_file, channel, album):
+    @param      current_file    |   Path to save the metadata to
+    @param      channel         |   Channel/Artist name
+    @param      album           |   Album name
+'''
+def add_tags_to_album(current_file: str, channel: str, album: str) -> None:
     song = MP3(current_file, ID3=EasyID3)
     song['album'] = album
     song['albumartist'] = channel
     song.save()
 
 ''' Moves the recently downloaded files into their respective folders (creating new ones if needed, and formats them for music albums)
-    @Params:    search_path |   String  |   Path to find the album files at
-    @Returns:   none'''
-def structure_album(search_path):
+    @param       search_path     |   Path to find the album files at
+'''
+def structure_album(search_path: str) -> None:
     print("\n\nFormatting files into Album")
     album_path = ""
     file_list = glob.glob(search_path + "\*.mp3")
@@ -185,9 +187,8 @@ def structure_album(search_path):
 
 ''' Gets the Path to the Default Directory file regardless of whether it exists or not
     There is a check whether the file exists outside this function scope
-    @Params: None
-    @Returns: None'''
-def get_default_directory():
+'''
+def get_default_directory() -> None:
     current_file_path = os.path.realpath(__file__)
     split_dir = current_file_path.split("\\")
     folder_path = "\\".join(split_dir[:len(split_dir)-1])
@@ -196,9 +197,9 @@ def get_default_directory():
 
 ''' Sets the default download path in a text file in the same path as the python file
     There is a check whether save_dir exists outside this function scope
-    @Params:    save_dir    |   String  |   Path to save the Album at and the directory to save as default
-    @Returns:   none'''
-def set_default_download_path(save_dir):
+    @param      save_dir        |   Path to save the Album at and the directory to save as default
+'''
+def set_default_download_path(save_dir: str) -> None:
     save_dir_file_path = get_default_directory()
     if os.path.exists(save_dir_file_path):                  # Runs if the text file exists
         print(f"Default Directory File detected. Opening: {save_dir_file_path}")
@@ -215,9 +216,8 @@ def set_default_download_path(save_dir):
 
 ''' Handles the Inputs and Runs the selected program
     This function does not have any Parameters or Returns, but accesses the text from the directory and input_url text boxes
-    @Params:    none
-    @Returns:   none'''
-def run_handler():
+'''
+def run_handler() -> None:
     save_dir = directory_path.get("1.0", "end-1c").strip()
     playlist_link = youtube_url.get("1.0", "end-1c").strip()
 
@@ -248,43 +248,38 @@ def run_handler():
 
 ''' Inserts a directory example into the directory text box
     This function does not have any Parameters or Returns, but modifies the text from the directory text box
-    @Params:    none
-    @Returns:   none'''
-def show_example_directory():
+'''
+def show_example_directory() -> None:
     directory_path.delete("1.0", "end-1c")
     directory_path.insert("1.0", "C:\\Users\\User\\Save File")
     directory_path.update()
 
 ''' Inserts a playlist url example into the input_url text box
     This function does not have any Parameters or Returns, but modifies the text from the input_url text box
-    @Params:    none
-    @Returns:   none'''
-def show_example_playlist_url():
+'''
+def show_example_playlist_url() -> None:
     youtube_url.delete("1.0", "end-1c")
     youtube_url.insert("1.0","https://www.youtube.com/playlist?list=PLAYLIST")
     youtube_url.update()
 
 ''' Clears all text from the directory text box
     This function does not have any Parameters or Returns, but modifies the text from the directory text box
-    @Params:    none
-    @Returns:   none'''
-def clear_directory():
+'''
+def clear_directory() -> None:
     directory_path.delete("1.0", "end-1c")
     directory_path.update()
 
 ''' Clears all text from the input_url text box
     This function does not have any Parameters or Returns, but modifies the text from the input_url text box
-    @Params:    none
-    @Returns:   none'''
-def clear_youtube():
+'''
+def clear_youtube() -> None:
     youtube_url.delete("1.0", "end-1c")
     youtube_url.update()
 
 ''' Clears all text from the directory and input_url text boxes
     This function does not have any Parameters or Returns, but modifies the text from the directory and input_url text boxes
-    @Params:    none
-    @Returns:   none'''
-def clear_input():
+'''
+def clear_input() -> None:
     directory_path.delete("1.0", "end-1c")
     youtube_url.delete("1.0", "end-1c")
     directory_path.update()
